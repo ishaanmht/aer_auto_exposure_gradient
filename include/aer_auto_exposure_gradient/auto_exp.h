@@ -57,6 +57,7 @@ class ExpNode {
   double frame_rate_req = 10.0; // maximum 80 fps
 
 
+
  double gamma[13]={1.0/1.9, 1.0/1.7, 1.0/1.5, 1.0/1.3, 1.0/1.1, 1.0/1.05 ,1.0, 1.05, 1.1, 1.3, 1.5, 1.7, 1.9};
  double metric[13];
  double max_metric;

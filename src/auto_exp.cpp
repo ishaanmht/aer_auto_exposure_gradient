@@ -2,7 +2,7 @@
 
 namespace exp_node 
 {
-	    		cv::Mat lookUpTable_01 (1, 256, CV_8U);
+	cv::Mat lookUpTable_01 (1, 256, CV_8U);
 	cv::Mat lookUpTable_05 (1, 256, CV_8U);
 	cv::Mat lookUpTable_08 (1, 256, CV_8U);
 	cv::Mat lookUpTable_1(1, 256, CV_8U);
@@ -14,6 +14,11 @@ namespace exp_node
 	ExpNode::ExpNode (const ros::NodeHandle & nh, const ros::NodeHandle & pnh):nh_ (nh),
     it_ (nh)
     {
+
+    	std::cout <<"the  image topic given in launch file? :"<< nh.getParam("/image_topic", image_topic)<<"\n";
+        std::cout <<"the value of image topic is : "<< image_topic<<"\n";
+        std::cout <<"the  kp given in launch file? :"<< nh.getParam("/kp", kp)<<"\n";
+        std::cout <<"the value of kp is : "<< kp<<"\n";
 
     	generate_LUT();
     	sub_camera_ = it_.subscribe(image_topic, 1,&ExpNode::CameraCb, this);

@@ -1,0 +1,8 @@
+<launch>
+
+   <rosparam command="load" file="$(find aer_auto_exposure_gradient)/config/local1.yaml" />
+ <node pkg="aer_auto_exposure_gradient" type="exp_node1" name="exp_node1" output="screen">
+    </node>
+
+
+</launch>

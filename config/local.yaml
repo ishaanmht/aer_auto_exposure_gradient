@@ -1,0 +1,4 @@
+image_topic: "camera/image_raw"
+kp: 0.2
+frame_rate_req: 10
+
