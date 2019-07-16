@@ -58,8 +58,8 @@ class ExpNode {
 
 
 
- double gamma[13]={1.0/1.9, 1.0/1.7, 1.0/1.5, 1.0/1.3, 1.0/1.1, 1.0/1.05 ,1.0, 1.05, 1.1, 1.3, 1.5, 1.7, 1.9};
- double metric[13];
+ double gamma[7]={1.0/1.9, 1.0/1.5, 1.0/1.2, 1.0, 1.2, 1.5, 1.9};
+ double metric[7];
  double max_metric;
  double max_gamma,alpha, expNew, expCur, shutter_cur, shutter_new, gain_cur, gain_new,upper_shutter;
  double lower_shutter = 100.0; // adjust if necessary [unit: micro-second]
