@@ -70,15 +70,16 @@ class ExpNode {
  std::string image_topic ="camera/image_raw";
 
 
-  
 
-  
+// Parameters that correlated to Shim's Gradient Metric
+double met_act_thresh = 0.06;
+double lamda = 1000.0; // The lamda value used in Shim's 2014 paper as a control parameter to adjust the mapping tendency (larger->steeper) 
 
 
 
   ros::NodeHandle nh_;
-   image_transport::ImageTransport it_;
-  image_transport::Subscriber sub_camera_;
+  image_transport::ImageTransport it_;
+  image_transport::Subscriber sub_camera_; 
 
 
 
