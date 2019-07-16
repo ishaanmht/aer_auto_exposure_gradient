@@ -1,4 +1,5 @@
 #include "aer_auto_exposure_gradient/auto_exp.h"
+//#include "Dehaze.h"
 
 namespace exp_node 
 {
@@ -38,9 +39,13 @@ namespace exp_node
 				check_rate = false;
 				cv::Mat image_current;
 				cv::Mat image_capture;
-				cv::Size size(612,512);
+				cv::Size size(612,512); // may want to try size(408,342) if speed is limited
 				// image_capture = cv_bridge::toCvCopy(msg, "mono8")->image;
 				image_capture = cv_bridge::toCvCopy(msg, "rgb8")->image;
+
+				//ImageDehaze::Dehaze Deh(5,0.1,0.95) ........................
+
+
 				cv::cvtColor(image_capture, image_capture, cv::COLOR_BGR2GRAY);
 				cv::resize(image_capture, image_current, size);
 				//image_capture = image_current;
@@ -49,15 +54,15 @@ namespace exp_node
 				// Call the image processing funciton here (i.e. the gamma processing), returning a float point gamma value
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-				double gamma[7]={1.0/1.9, 1.0/1.5, 1.0/1.2 ,1.0, 1.2, 1.5, 1.9};
-				double metric[7];
-			    double max_metric;
-			    double max_gamma,alpha, expNew, expCur, shutter_cur, shutter_new, gain_cur, gain_new,upper_shutter;
-				double lower_shutter = 100.0; // adjust if necessary [unit: micro-second]
-        	    double kp=0.4; // contorl the speed to convergence
-				double d = 0.1, R; // parameters used in the nonliear function in Shim's 2018 paper 				
-				int gamma_index; // index to record the location of the optimum gamma value
-				bool gain_flag = false;
+				//double gamma[7]={1.0/1.9, 1.0/1.5, 1.0/1.2 ,1.0, 1.2, 1.5, 1.9};
+				//double metric[7];
+			    //double max_metric;
+			    //double max_gamma,alpha, expNew, expCur, shutter_cur, shutter_new, gain_cur, gain_new,upper_shutter;
+				//double lower_shutter = 100.0; // adjust if necessary [unit: micro-second]
+        	    //double kp=0.4; // contorl the speed to convergence
+				//double d = 0.1, R; // parameters used in the nonliear function in Shim's 2018 paper 				
+				//int gamma_index; // index to record the location of the optimum gamma value
+				//bool gain_flag = false;
 
 				// calculate the upper limit of shutter speed [unit:microsecond]
 				if ((1.0/frame_rate_req)*1000000.0 > 32754.0){        
@@ -74,7 +79,7 @@ namespace exp_node
 				{
 				   metric[i]= image_gradient_gamma(image_current, i)/1000000; // passing the corresponding index
 				//std::cout << "\nmetric " << i << " is:" <<metric[i] <<std::endl;
-				   std::cout << "  " <<metric[i] <<std::endl;
+				   std::cout << "  " <<metric[i] <<std::endl; // comment
 				}
                                 
 				// loop to find out the index that correslated to the optimum/maximum gamma value
@@ -106,7 +111,7 @@ namespace exp_node
 
 				max_gamma = findRoots1(coeff, metric[gamma_index]); // calling function findRoots1 to find opt_gamma
 				
-				std::cout << "\nopt_gamma now is:  " << max_gamma << std::endl; 
+				std::cout << "\nopt_gamma now is:  " << max_gamma << std::endl; //comment
 				
 				for (int i=0; i<6; i++) 
 				{
@@ -114,11 +119,11 @@ namespace exp_node
 				}
 								
 
-				std::cout << "metric_check = " << metric_check << std::endl;
+				std::cout << "metric_check = " << metric_check << std::endl; // comment
 
 				if (max_gamma < 1.0/1.9 || max_gamma > 1.9)	
 				{
-                                	// find out the optimum gamma value associated with highest image gradient
+                    // find out the optimum gamma value associated with highest image gradient
 					max_gamma = gamma[gamma_index];
 				}
 				else if (metric[gamma_index] > metric_check)
@@ -145,26 +150,18 @@ namespace exp_node
                                
 				// alpha value refers to Shim's 2014 paper
 				if (max_gamma < 1)
-                                	//{alpha = 0.5;} //original paper used 0.5
-					{alpha = 1;}
-                                if (max_gamma >= 1)
-					{alpha = 1;}
+                    //{alpha = 0.5;} //original paper used 0.5
+					{alpha = 1.0;}
+                if (max_gamma >= 1)
+					{alpha = 1.0;}
 				
 				ros::param::get("/blackfly/spinnaker_camera_nodelet/exposure_time", shutter_cur); // get the current shutter
 				ros::param::get("/blackfly/spinnaker_camera_nodelet/gain", gain_cur); // get the current gain			
 				
 				shutter_cur = shutter_cur / 1000000; // unit from micro-second to second
 				
-				expCur = log2(7.84/( shutter_cur* pow(2,(gain_cur/6.0)) ) );				
+				expCur = log2(7.84/( shutter_cur* pow(2,(gain_cur/6.0)) ) ); // The 7.84 here is because the camera we are using has a F-number of 2.8			
 
-				/* testing: using current shutter speed to determine the speed to change exposure value
-				   This is achieved by calculating kp as 10^-5 * current shutter speed
-				   The reasonale behind is becasue in the EV vs shutter speed plot, the slope at the lower bound is very steep
-				   In order word, in a bright scene, a small change in shutter speed has a significant impact on EV since the
-				   the shutter speed is small, and it is in the denominator, small change in denominator led to huge impact
-				*/
-
-				//kp = shutter_cur * 10; // e.g. shutter = 1000 microsec -> kp = 0.01; shutter=10000 microsec -> kp = 0.1
 				
 				// This update function was implemented in Shim's 2018 paper which is an update version of his 2014 paper
 				R = d * tan( (2 - max_gamma) * atan2(1,d) - atan2(1,d) ) + 1;
@@ -173,7 +170,7 @@ namespace exp_node
 				// Shim's 2014 version of update function
 				//expNew = (1+ kp * alpha * (1-max_gamma)) * expCur; 
 			
-				shutter_new = (7.84) * 1000000/(pow(2,expNew)); //[unit: micro-second]
+				shutter_new = (7.84) * 1000000/(pow(2,expNew)); //[unit: micro-second]  Note: 7.84 = 2.8*2.8
 				
 				//std::cout << "\ngain: " << round(gain_cur) << "   shutter_new: "<< shutter_new << std::endl; //
 
@@ -183,29 +180,31 @@ namespace exp_node
                     		gain_flag= true;
                     		shutter_new=upper_shutter;
                 		}
-                		else if (shutter_new<lower_shutter)
+                else if (shutter_new<lower_shutter)
                 		{
                     		gain_flag= true;
                     		shutter_new=lower_shutter;
 		                }
-                		else { gain_flag=false;}
+                else {gain_flag=false;}
                 
-                		if (gain_flag==true)
-                		{
+
+
+                if (gain_flag==true)
+                	{
                 		gain_new = 6.0*(expCur-expNew)+gain_cur;
 				
-                    			if (gain_new > 30)
-                    			{gain_new = 30;}
-                    			else if (gain_new < -10)
-                    			{gain_new = -10;}
-				gain_flag = false;                    		
-				//gain_cur= gain_new;
-                		}
-                		else if  (shutter_new < upper_shutter && shutter_new > lower_shutter){
-                    		gain_new = 0.0;
-				//gain_flag = false;
-                    		//gain_cur=gain_new;
-                		}
+                    	if (gain_new > 30)
+                    		{gain_new = 30;}
+                    	else if (gain_new < -10)
+                    		{gain_new = -10;}
+						gain_flag = false;                    		
+                	}
+                else if  (shutter_new < upper_shutter && shutter_new > lower_shutter)
+                	{
+                    	gain_new = 0.0;
+						//gain_flag = false;
+                    	//gain_cur=gain_new;
+                	}
 
 				///////////////////////////// Comment or delete the following three lines in implementation ////////////////
 				std::cout << "\ngain: " << round(gain_cur) << "   shutter_new: "<< shutter_new << std::endl;
@@ -215,7 +214,7 @@ namespace exp_node
 
 				///////////////////////////////////////////////////////////////////
 				// Then call the function to determine what exposure time and gain to update
-                                ///////////////////////////////////////////////////////////////////
+                ///////////////////////////////////////////////////////////////////
 
 				
                 ChangeParam(shutter_new, gain_new); // may input the gain and exposure time update
@@ -226,7 +225,7 @@ namespace exp_node
 				ROS_ERROR("Could not convert from '%s' to 'mono8'.", msg->encoding.c_str());
 			}
 		}
-		else
+		else // keeping the if-else statement here is because this makes easier to add delay
 		{
 			//ros::Timer timer1 = nh.createTimer(ros::Duration(0.5), imageProcess::timerCallback1);
 			//ros::Duration(0.15).sleep(); // IMPORTANT: Use this line to add delay if necessary
@@ -300,7 +299,7 @@ namespace exp_node
 	    // Define variables that will be used in the sobel gradient determination function
 	    int scale = 1;
 	    int delta = 0;
-	    int ddepth = CV_8U;
+	    int ddepth = CV_8UC1;
 	
 	    // Call the Sobel function to determine gradient image in x and y direction
 	
@@ -390,14 +389,16 @@ namespace exp_node
 
         ros::service::call("/blackfly/spinnaker_camera_nodelet/set_parameters",srv_req, srv_resp);
     }
+	
+
 	void ExpNode::generate_LUT (){
 		
 
 		// Need to keep the same gamma values as in imageCallBack
 		double gamma[7]={1.0/1.9, 1.0/1.5, 1.0/1.2 ,1.0, 1.2, 1.5, 1.9}; 		
 		
-		double sigma = 255.0 * 0.06; // The sigma value is used in Shim's 2014 paper as a activation threshhold, the paper used a value of 0.06    
-    		double lamda = 1000.0; // The lamda value used in Shim's 2014 paper as a control parameter to adjust the mapping tendency (larger->steeper) 
+		double sigma = 255.0 * met_act_thresh; // The sigma value is used in Shim's 2014 paper as a activation threshhold, the paper used a value of 0.06    
+    	//double lamda = 1000.0; // The lamda value used in Shim's 2014 paper as a control parameter to adjust the mapping tendency (larger->steeper) 
 
 
 		uchar* p;
@@ -435,18 +436,16 @@ namespace exp_node
 	    			}
 				else{
 					q[i] = 0;
-				}
+					}
      
-			} // end of for loop with index i
+				} // end of for loop with index i
 
 		}// end of for loop with index j
 
-	    	//std::cout << typeid(q[0]).name() << std::endl;
-		//std::cout << "\n LUT_1.0: " << lookUpTable_1 << std::endl;	   	
-		//std::cout << "\n LUT_1/1.9: " << lookUpTable_01 << std::endl;
-		//std::cout << "\n LUT_1.9: " << lookUpTable_19 << std::endl;
-		//std::cout <<LUT_seq[0][1] << std::endl;    		
-	} //
+   		
+	} // end of generate_LUT()
+	
+
 	double  ExpNode::findRoots1 (double a[6], double check)
 	{
 		static double roots1[4];
@@ -460,48 +459,48 @@ namespace exp_node
 		Eigen::MatrixXd companion_mat (4, 4);
 
 		for (int n = 0; n < 4; n++)
-			{
-				for (int m = 0; m < 4; m++)
-					{
-					 if (n == m + 1)
-					  companion_mat (n, m) = 1.0;
-					if (m == 4 - 1)
-						companion_mat (n, m) = -ad[n] / ad[4];
-				}
-			}
-		 Eigen::MatrixXcd eig = companion_mat.eigenvalues ();
-		 for (int i = 0; i < 4; i++)
-		 {
-		  met_temp = 0.0; // met_temp is used to check if the root can return a larger metric      
-		  if (std::imag (eig (i)) == 0) // if statement to determine whether or not root is true
-		  {
-		  	roots1[i] = std::real(eig (i));	 
-		  }
-		  else
-		  {
+		{
+			for (int m = 0; m < 4; m++)
+				{
+				 if (n == m + 1)
+				 	companion_mat (n, m) = 1.0;
+				 if (m == 4 - 1)
+					companion_mat (n, m) = -ad[n] / ad[4];
+			} // end of for loop with index m
+		} // end of for loop with index n
 
-		  roots1[i] = 1000; // if root is imaginary, assign an overshoot value
-		  }
+		Eigen::MatrixXcd eig = companion_mat.eigenvalues ();
+		for (int i = 0; i < 4; i++)
+		{
+		 	met_temp = 0.0; // met_temp is used to check if the root can return a larger metric      
+		 	if (std::imag (eig (i)) == 0) // if statement to determine whether or not root is true
+		  	{
+		  		roots1[i] = std::real(eig (i));	 
+		  	}
+		  	else
+		  	{
+
+		  		roots1[i] = 1000; // if root is imaginary, assign an overshoot value
+		  	}
 		  if ((roots1[i] < 2.0) && (roots1[i] > 0.5)) //check if the calculated root is within range (.5,2)
-		  {
-		  	for (int j=0; j<6; j++) 
 		  	{
-		  		met_temp = met_temp + a[j] * pow(roots1[i],5-j);
+		  		for (int j=0; j<6; j++) 
+		  		{
+		  			met_temp = met_temp + a[j] * pow(roots1[i],5-j);
+		  		}
+		  		if (met_temp > check) // if the root can return a metric that is greater than current metric
+		  		{
+		  			opt_gamma = roots1[i];
+		  			std::cout << "\n in function maximum metric is: " << met_temp << "\n" << std::endl;
+		  		}
 		  	}
-		  	if (met_temp > check) // if the root can return a metric that is greater than current metric
-		  	{
-		  		opt_gamma = roots1[i];
-		  		std::cout << "\n in function maximum metric is: " << met_temp << "\n" << std::endl;
-		  	}
-		  }
 		  std::cout << "eig(i) is: " << std::real(eig (i)) << "   ima: " << std::imag (eig (i)) << std::endl;
-		}
+		} // end of for loop with index i
 		return opt_gamma;
-	}
+	} // END of function of findRoots1()
 
 
 double * ExpNode::curveFit (double x[7], double y[7])
-
 { static double coff[6];
   int i, j, k, n, N;
 
@@ -529,15 +528,10 @@ double * ExpNode::curveFit (double x[7], double y[7])
 
   return coff;
    
-
-}
-
-
-
-
+} // END of function curveFit()
 
 
 
 
     
-}
+} //END OF THE WHOLE CLASS
