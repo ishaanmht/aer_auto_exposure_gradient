@@ -41,6 +41,7 @@ add_library(${PROJECT_NAME}
    
   
  src/auto_exp.cpp
+ src/Dehaze.cpp
  
     
 )
@@ -56,4 +57,5 @@ add_executable(exp_node1 src/exp_node1.cpp)
 target_link_libraries(exp_node1  ${PROJECT_NAME})
 add_dependencies(exp_node1 ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 
