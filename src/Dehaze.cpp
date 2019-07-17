@@ -1,7 +1,8 @@
 #include "aer_auto_exposure_gradient/Dehaze.h"
 #include <queue>
-#include <functinoal>
-
+#include <functional>
+using namespace std;
+using namespace cv;
 
 bool ImageDehazer::LoadImage(const std::string& _filename)
 {
@@ -17,10 +18,16 @@ bool ImageDehazer::LoadImage(const std::string& _filename)
 }
 
 
-bool ImageDehazer::Dehaze(const int& _patchsize, const double& _t, const double& _w)
+bool ImageDehazer::Dehaze(cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w)
 {
     if (m_Image.empty())
-        return false;
+        {
+        	return false;
+        }
+    
+    m_Image.convertTo(m_DoubleImage, CV_64FC3); // Convert the image from uint8 to double
+    cout << "pre-Dehaze Image is loaded." << endl;
+    
     DarkChannelImage_Create(_patchsize);
     m_AtmosLight = Atmospheric_Light_Estimate();
     TransMap_Create(_patchsize, _t, _w);
@@ -35,14 +42,15 @@ bool ImageDehazer::WriteImage(const std::string& _filename)
 }
 
 
-void ShowImg(char *windowname, IplImage *image)
-{
-    cv::namedWindow(windowname, CV_WINDOW_NORMAL);
-    cv::imshow(windowname, image);
-    cv::waitKey(1);
-    cv::cvReleaseImage(&image);
-    cv::destroyWindow(windowname);
-}
+
+//void ShowImg(char *windowname, IplImage *image)
+//{
+    //cv::namedWindow(windowname, CV_WINDOW_NORMAL);
+    //cv::imshow(windowname, image);
+    //cv::waitKey(1);
+    //cv::cvReleaseImage(&image);
+    //cv::destroyWindow(windowname);
+//}
 
 
 void ImageDehazer::DarkChannelImage_Create(const int& _patchsize)
@@ -117,13 +125,14 @@ void ImageDehazer::TransMap_Create(const int& _patchsize, const double& _t, cons
         {
             double t = std::max( 1 - (_w*m_DarkChannelImage.at<uchar>(i, j)/m_AtmosLight), _t);
 
-			m_RecoveredImage.at<Vec3b>(i, j)[0] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[0] - m_AtmosLight) / t + m_AtmosLight), 255.0));
-			m_RecoveredImage.at<Vec3b>(i, j)[1] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[1] - m_AtmosLight) / t + m_AtmosLight), 255.0));
-			m_RecoveredImage.at<Vec3b>(i, j)[2] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[2] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+			//m_RecoveredImage.at<Vec3b>(i, j)[0] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[0] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+			//m_RecoveredImage.at<Vec3b>(i, j)[1] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[1] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+			//m_RecoveredImage.at<Vec3b>(i, j)[2] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[2] - m_AtmosLight) / t + m_AtmosLight), 255.0));
 
 
         }
     }
+
 
 
 }
