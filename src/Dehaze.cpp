@@ -18,7 +18,11 @@ bool ImageDehazer::LoadImage(const std::string& _filename)
 }
 
 
+<<<<<<< HEAD
 bool ImageDehazer::Dehaze(cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w, cv::Mat &ToTransmission)
+=======
+bool ImageDehazer::Dehaze(cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w)
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
 {
     if (m_Image.empty())
         {
@@ -30,7 +34,11 @@ bool ImageDehazer::Dehaze(cv::Mat m_Image, const int& _patchsize, const double& 
     
     DarkChannelImage_Create(m_Image,_patchsize);
     m_AtmosLight = Atmospheric_Light_Estimate();
+<<<<<<< HEAD
     TransMap_Create( m_Image, _patchsize, _t, _w, ToTransmission);
+=======
+    TransMap_Create( m_Image, _patchsize, _t, _w);
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
     return true;
 }
 
@@ -114,7 +122,11 @@ double ImageDehazer::Atmospheric_Light_Estimate()
 }
 
 
+<<<<<<< HEAD
 void ImageDehazer::TransMap_Create(cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w, cv::Mat &ToTransmission)
+=======
+void ImageDehazer::TransMap_Create(cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w)
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
 {
     TransmissionMap.create(m_Image.rows, m_Image.cols, CV_64FC1);
     m_RecoveredImage.create(m_Image.rows, m_Image.cols, CV_8UC3);
@@ -126,9 +138,15 @@ void ImageDehazer::TransMap_Create(cv::Mat m_Image, const int& _patchsize, const
         {
             double t = std::max( 1 - (_w*m_DarkChannelImage.at<uchar>(i, j)/m_AtmosLight), _t);
 
+<<<<<<< HEAD
 			m_RecoveredImage.at<Vec3b>(i, j)[0] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[0] - m_AtmosLight) / t + m_AtmosLight), 255.0));
 			m_RecoveredImage.at<Vec3b>(i, j)[1] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[1] - m_AtmosLight) / t + m_AtmosLight), 255.0));
 			m_RecoveredImage.at<Vec3b>(i, j)[2] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[2] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+=======
+			//m_RecoveredImage.at<Vec3b>(i, j)[0] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[0] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+			//m_RecoveredImage.at<Vec3b>(i, j)[1] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[1] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+			//m_RecoveredImage.at<Vec3b>(i, j)[2] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[2] - m_AtmosLight) / t + m_AtmosLight), 255.0));
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
 
 			TransmissionMap.at<double>(i, j) = t;
 			//cout << "TransmissionMap is : " << TransmissionMap.at<double>(i, j) << endl;
@@ -136,10 +154,15 @@ void ImageDehazer::TransMap_Create(cv::Mat m_Image, const int& _patchsize, const
         }
     }
 
+<<<<<<< HEAD
     TransmissionMap.copyTo(ToTransmission);
     cout << " zzzz TransmissionMap is : " << ToTransmission.rows << endl;
     //cv::imshow("view", m_RecoveredImage); //comment this line in actual implementation
 	//cv::waitKey(0); //comment this line in actual implementation
+=======
+
+    //cout << "TransmissionMap is : " << t << endl;
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
 
 }
 

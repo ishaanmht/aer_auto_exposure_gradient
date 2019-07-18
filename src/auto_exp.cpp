@@ -43,12 +43,18 @@ namespace exp_node
 				check_rate = false;
 				cv::Mat image_current;
 				cv::Mat image_capture;
+<<<<<<< HEAD
 				//cv::Size size(512,612); // may want to try size(408,342) if speed is limited
 				cv::Size size(342,408);
+=======
+				//cv::Size size(612,512); // may want to try size(408,342) if speed is limited
+				cv::Size size(408,342);
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
 				// image_capture = cv_bridge::toCvCopy(msg, "mono8")->image;
 				image_capture = cv_bridge::toCvCopy(msg, "rgb8")->image;
 
 				
+<<<<<<< HEAD
 				if (dehaze_mode)
 				{
 					cv::Mat ToTransmission;
@@ -62,6 +68,15 @@ namespace exp_node
 					cv::waitKey(1); //comment this line in actual implementation
 
 				}
+=======
+				//if (dehaze_mode == true)
+				//{
+				//	bool haha;
+				//	ImageDehazer Deh;
+				//	haha = Deh.Dehaze(image_capture,filter_size,0.1,0.95);
+					
+				//}
+>>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
 				
 
 
