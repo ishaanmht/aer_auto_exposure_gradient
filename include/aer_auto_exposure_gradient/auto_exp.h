@@ -73,11 +73,9 @@ class ExpNode {
 
 
 // Whether or not turn on the dehaze mode (Dehazing method: Kaiming He, 2011)
-<<<<<<< HEAD
-bool dehaze_mode = false;
-=======
+
 bool dehaze_mode = true;
->>>>>>> 5d2d7e1981c668d298041a72a6e7044719f41b01
+
 int filter_size = 5; // Filter size of the filters used in the dehazing algorithm
 
 
