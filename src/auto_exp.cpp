@@ -47,13 +47,13 @@ namespace exp_node
 				image_capture = cv_bridge::toCvCopy(msg, "rgb8")->image;
 
 				
-				if (dehaze_mode == true)
-				{
-					bool haha;
-					ImageDehazer Deh;
-					haha = Deh.Dehaze(image_capture,filter_size,0.1,0.95);
-
-				}
+				//if (dehaze_mode == true)
+				//{
+				//	bool haha;
+				//	ImageDehazer Deh;
+				//	haha = Deh.Dehaze(image_capture,filter_size,0.1,0.95);
+					
+				//}
 				
 
 

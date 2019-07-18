@@ -28,9 +28,9 @@ bool ImageDehazer::Dehaze(cv::Mat m_Image, const int& _patchsize, const double& 
     m_Image.convertTo(m_DoubleImage, CV_64FC3); // Convert the image from uint8 to double
     cout << "pre-Dehaze Image is loaded." << endl;
     
-    DarkChannelImage_Create(_patchsize);
+    DarkChannelImage_Create(m_Image,_patchsize);
     m_AtmosLight = Atmospheric_Light_Estimate();
-    TransMap_Create(_patchsize, _t, _w);
+    TransMap_Create( m_Image, _patchsize, _t, _w);
     return true;
 }
 
@@ -53,7 +53,7 @@ bool ImageDehazer::WriteImage(const std::string& _filename)
 //}
 
 
-void ImageDehazer::DarkChannelImage_Create(const int& _patchsize)
+void ImageDehazer::DarkChannelImage_Create(cv::Mat m_Image, const int& _patchsize)
 {
 
     m_DarkChannelImage.create(m_Image.rows, m_Image.cols, CV_8UC1);
@@ -108,14 +108,15 @@ double ImageDehazer::Atmospheric_Light_Estimate()
 	}
 
 	total /= TopAmounts;
-	cout << total << endl;
+	cout << "rows and cols are: " << m_DarkChannelImage.rows << "  " << m_DarkChannelImage.cols << endl;
+	cout << "total is: " << total << endl;
 	return total;
 }
 
 
-void ImageDehazer::TransMap_Create(const int& _patchsize, const double& _t, const double& _w)
+void ImageDehazer::TransMap_Create(cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w)
 {
-    TransmissionMap.create(m_Image.rows, m_Image.cols, CV_8UC1);
+    TransmissionMap.create(m_Image.rows, m_Image.cols, CV_64FC1);
     m_RecoveredImage.create(m_Image.rows, m_Image.cols, CV_8UC3);
 
     for (int i = 0; i < m_Image.rows; i++)
@@ -129,11 +130,14 @@ void ImageDehazer::TransMap_Create(const int& _patchsize, const double& _t, cons
 			//m_RecoveredImage.at<Vec3b>(i, j)[1] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[1] - m_AtmosLight) / t + m_AtmosLight), 255.0));
 			//m_RecoveredImage.at<Vec3b>(i, j)[2] = static_cast<uchar>(std::min(((m_Image.at<Vec3b>(i, j)[2] - m_AtmosLight) / t + m_AtmosLight), 255.0));
 
+			TransmissionMap.at<double>(i, j) = t;
+			//cout << "TransmissionMap is : " << TransmissionMap.at<double>(i, j) << endl;
 
         }
     }
 
 
+    //cout << "TransmissionMap is : " << t << endl;
 
 }
 
