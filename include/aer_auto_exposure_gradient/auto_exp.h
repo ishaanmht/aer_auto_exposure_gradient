@@ -34,6 +34,7 @@
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/CameraInfo.h>
 
+//#include <aer_auto_exposure_gradient/Dehaze.h>
 
 
 
@@ -63,11 +64,17 @@ class ExpNode {
  double max_metric;
  double max_gamma,alpha, expNew, expCur, shutter_cur, shutter_new, gain_cur, gain_new,upper_shutter;
  double lower_shutter = 100.0; // adjust if necessary [unit: micro-second]
- double kp=0.2; // contorl the speed to convergence
+ double kp=0.4; // contorl the speed to convergence
  double d = 0.1, R; // parameters used in the nonliear function in Shim's 2018 paper 				
  int gamma_index; // index to record the location of the optimum gamma value
  bool gain_flag = false;
  std::string image_topic ="camera/image_raw";
+
+
+
+// Whether or not turn on the dehaze mode (Dehazing method: Kaiming He, 2011)
+bool dehaze_mode = false;
+int filter_size = 5; // Filter size of the filters used in the dehazing algorithm
 
 
 

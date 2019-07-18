@@ -17,22 +17,25 @@ class ImageDehazer
 {
     public:
         bool LoadImage(const std::string& _filename);
-        bool Dehaze(const int& _patchsize, const double& _t, const double& _w);
+        bool Dehaze(const cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w, cv::Mat &ToTransmission);
         bool WriteImage(const std::string& _filename);
 
         cv::Mat TransmissionMap;
         cv::Mat m_DarkChannelImage;
+        cv::Mat m_Image;
+        cv::Mat m_RecoveredImage;
+
 
     private:
         IplImage *m_InputImage;
-        cv::Mat m_Image;
+        
         cv::Mat m_DoubleImage;
-        cv::Mat m_RecoveredImage;
+        
 
         IplImage *InputImg;
         double m_AtmosLight;
 
-        void DarkChannelImage_Create(const int& _patchsize);
+        void DarkChannelImage_Create(const cv::Mat m_Image, const int& _patchsize);
         double Atmospheric_Light_Estimate();
-        void TransMap_Create(const int& _patchsize, const double& _t, const double& _w);
+        void TransMap_Create(const cv::Mat m_Image, const int& _patchsize, const double& _t, const double& _w, cv::Mat &ToTransmission);
 };

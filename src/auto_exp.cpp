@@ -1,5 +1,7 @@
 #include "aer_auto_exposure_gradient/auto_exp.h"
+
 #include "aer_auto_exposure_gradient/Dehaze.h"
+
 
 namespace exp_node 
 {
@@ -21,6 +23,8 @@ namespace exp_node
         std::cout <<"the  kp given in launch file? :"<< nh.getParam("/kp", kp)<<"\n";
         std::cout <<"the value of kp is : "<< kp<<"\n";
 
+        cv::namedWindow("view", CV_WINDOW_NORMAL); // comment in implement
+
     	generate_LUT();
     	sub_camera_ = it_.subscribe(image_topic, 1,&ExpNode::CameraCb, this);
 
@@ -39,11 +43,26 @@ namespace exp_node
 				check_rate = false;
 				cv::Mat image_current;
 				cv::Mat image_capture;
-				cv::Size size(612,512); // may want to try size(408,342) if speed is limited
+				//cv::Size size(512,612); // may want to try size(408,342) if speed is limited
+				cv::Size size(342,408);
 				// image_capture = cv_bridge::toCvCopy(msg, "mono8")->image;
 				image_capture = cv_bridge::toCvCopy(msg, "rgb8")->image;
 
-				//ImageDehaze::Dehaze Deh(5,0.1,0.95) ........................
+				
+				if (dehaze_mode)
+				{
+					cv::Mat ToTransmission;
+					cv::Mat Img_pre;
+					cv::resize(image_capture, Img_pre, size);
+					bool haha;
+					ImageDehazer Deh;
+					haha = Deh.Dehaze(Img_pre,filter_size,0.1,0.95, ToTransmission);
+					std::cout << "# of rows: " << ToTransmission.rows << "# of cols: " << ToTransmission.cols << std::endl;
+					cv::imshow("view", ToTransmission); //comment this line in actual implementation
+					cv::waitKey(1); //comment this line in actual implementation
+
+				}
+				
 
 
 				cv::cvtColor(image_capture, image_capture, cv::COLOR_BGR2GRAY);
@@ -155,8 +174,12 @@ namespace exp_node
                 if (max_gamma >= 1)
 					{alpha = 1.0;}
 				
-				ros::param::get("/blackfly/spinnaker_camera_nodelet/exposure_time", shutter_cur); // get the current shutter
-				ros::param::get("/blackfly/spinnaker_camera_nodelet/gain", gain_cur); // get the current gain			
+				//ros::param::get("/blackfly/spinnaker_camera_nodelet/exposure_time", shutter_cur); // get the current shutter
+				//ros::param::get("/blackfly/spinnaker_camera_nodelet/gain", gain_cur); // get the current gain
+
+				ros::param::get("/camera/spinnaker_camera_nodelet/exposure_time", shutter_cur); // get the current shutter
+				ros::param::get("/camera/spinnaker_camera_nodelet/gain", gain_cur); // get the current gain
+			
 				
 				shutter_cur = shutter_cur / 1000000; // unit from micro-second to second
 				
@@ -387,7 +410,8 @@ namespace exp_node
 
         srv_req.config = conf;
 
-        ros::service::call("/blackfly/spinnaker_camera_nodelet/set_parameters",srv_req, srv_resp);
+        //ros::service::call("/blackfly/spinnaker_camera_nodelet/set_parameters",srv_req, srv_resp);
+	ros::service::call("/camera/spinnaker_camera_nodelet/set_parameters",srv_req, srv_resp);
     }
 	
 
@@ -534,4 +558,7 @@ double * ExpNode::curveFit (double x[7], double y[7])
 
 
     
-} //END OF THE WHOLE CLASS
+
+} //END OF THE WHOLE NAMESPACE
+
+

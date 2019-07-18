@@ -14,7 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(cmake_modules)
 
-#find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED)
 find_package(Eigen3)
 
 
@@ -41,11 +41,12 @@ add_library(${PROJECT_NAME}
    
   
  src/auto_exp.cpp
+ src/Dehaze.cpp
  
     
 )
 target_link_libraries(${PROJECT_NAME}
-    ${catkin_LIBRARIES}
+    ${catkin_LIBRARIES} ${OpenCV_LIBRARIES}
     
     )
 
@@ -56,4 +57,5 @@ add_executable(exp_node1 src/exp_node1.cpp)
 target_link_libraries(exp_node1  ${PROJECT_NAME})
 add_dependencies(exp_node1 ${catkin_EXPORTED_TARGETS} ${${PROJECT_NAME}_EXPORTED_TARGETS})
 set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
+
 
