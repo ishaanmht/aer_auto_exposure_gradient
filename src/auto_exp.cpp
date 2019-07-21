@@ -22,6 +22,10 @@ namespace exp_node
         std::cout <<"the value of image topic is : "<< image_topic<<"\n";
         std::cout <<"the  kp given in launch file? :"<< nh.getParam("/kp", kp)<<"\n";
         std::cout <<"the value of kp is : "<< kp<<"\n";
+        std::cout <<"the dehaze mode selected? :"<< nh.getParam("/dehaze_mode", dehaze_mode)<<"\n";
+        std::cout <<"the dehaze mode is : "<< dehaze_mode<<"\n";
+        std::cout <<"the blending_wt given in launch file? :"<< nh.getParam("/blending_wt", blending_wt)<<"\n";
+        std::cout <<"the value of blending_wt is : "<< blending_wt<<"\n";
 
         cv::namedWindow("view", CV_WINDOW_NORMAL); // comment in implement
 
@@ -50,11 +54,11 @@ namespace exp_node
 				// image_capture = cv_bridge::toCvCopy(msg, "mono8")->image;
 				image_capture = cv_bridge::toCvCopy(msg, "rgb8")->image;
 
-				
+				cv::Mat ToTransmission = cv::Mat::ones(size, CV_64FC1) ;
 
 				if (dehaze_mode)
 				{
-					cv::Mat ToTransmission;
+					
 					cv::Mat Img_pre;
 					cv::resize(image_capture, Img_pre, size);
 					bool haha;
@@ -66,7 +70,7 @@ namespace exp_node
 
 				}
 			
-
+				
 
 				cv::cvtColor(image_capture, image_capture, cv::COLOR_BGR2GRAY);
 				cv::resize(image_capture, image_current, size);
@@ -99,7 +103,7 @@ namespace exp_node
 				// manually adjust the possible gamma values and the number of gamma to use
 				for (int i=0; i<7; ++i)
 				{
-				   metric[i]= image_gradient_gamma(image_current, i)/1000000; // passing the corresponding index
+				   metric[i]= image_gradient_gamma(image_current, i, ToTransmission)/1000000; // passing the corresponding index
 				//std::cout << "\nmetric " << i << " is:" <<metric[i] <<std::endl;
 				   std::cout << "  " <<metric[i] <<std::endl; // comment
 				}
@@ -260,7 +264,7 @@ namespace exp_node
 
 	}
 
-	double ExpNode::image_gradient_gamma(cv::Mat &src_img, int j)
+	double ExpNode::image_gradient_gamma(cv::Mat &src_img, int j, cv::Mat &ToTransmission)
 	{
 
 	// Accepting the raw image and the index of gamma value as input argument
@@ -296,6 +300,8 @@ namespace exp_node
 	    ///////////////////// The following computes the image gradient of the gamma-processed image /////////////////////
 	    cv::Mat grad_x, grad_y;
 	    cv::Mat abs_grad_x, abs_grad_y, dst_img;
+
+	    cv::Mat weight_ori = cv::Mat::ones(res.rows,res.cols,CV_64FC1);
 	    
 
 		// Using the corresponding index to find out the correct lookuptable to use
@@ -347,6 +353,11 @@ namespace exp_node
 	    // Method 2: Shim's 2014 gradient metric function
 	    // Using the metric equation given in Shim's 2014 paper
 	    cv::LUT(dst_img, lookUpTable_metric, res);
+	    res.convertTo(res, CV_64FC1);
+
+	    cv::addWeighted(weight_ori, blending_wt, ToTransmission, (1.0-blending_wt), 0.0, ToTransmission);
+
+	    res = res.mul(ToTransmission);
 	    double metric= cv::sum(res)[0];
 
 

@@ -48,7 +48,7 @@ class ExpNode {
  private:
 
   void CameraCb(const sensor_msgs::ImageConstPtr &msg);
-  double image_gradient_gamma(cv::Mat &src_img, int j);
+  double image_gradient_gamma(cv::Mat &src_img, int j, cv::Mat &ToTransmission);
   void ChangeParam (double shutter_new, double gain_new);
   
   double * curveFit (double x[7], double y[7]);
@@ -77,7 +77,7 @@ class ExpNode {
 bool dehaze_mode = true;
 
 int filter_size = 5; // Filter size of the filters used in the dehazing algorithm
-
+double blending_wt = 0.8;
 
 
 // Parameters that correlated to Shim's Gradient Metric
