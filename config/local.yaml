@@ -1,5 +1,5 @@
 image_topic: "camera/image_raw"
-kp: 0.2
+kp: 0.25
 frame_rate_req: 10
 dehaze_mode: false
 blending_wt: 1.0
