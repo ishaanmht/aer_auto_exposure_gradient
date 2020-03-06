@@ -1,6 +1,8 @@
-image_topic: "camera/image_raw"
+image_topic: "/camera/image_raw"
+service_call: "/camera/spinnaker_camera_nodelet/set_parameters"
+exp_param_call: "/camera/spinnaker_camera_nodelet/exposure_time"
+gain_param_call: "/camera/spinnaker_camera_nodelet/gain"
 kp: 0.25
 frame_rate_req: 10
-dehaze_mode: false
-blending_wt: 1.0
+
 

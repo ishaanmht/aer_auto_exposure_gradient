@@ -41,7 +41,7 @@ add_library(${PROJECT_NAME}
    
   
  src/auto_exp.cpp
- src/Dehaze.cpp
+
  
     
 )

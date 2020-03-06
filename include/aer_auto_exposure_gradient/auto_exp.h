@@ -48,7 +48,7 @@ class ExpNode {
  private:
 
   void CameraCb(const sensor_msgs::ImageConstPtr &msg);
-  double image_gradient_gamma(cv::Mat &src_img, int j, cv::Mat &ToTransmission);
+  double image_gradient_gamma(cv::Mat &src_img, int j);
   void ChangeParam (double shutter_new, double gain_new);
   
   double * curveFit (double x[7], double y[7]);
@@ -69,15 +69,12 @@ class ExpNode {
  int gamma_index; // index to record the location of the optimum gamma value
  bool gain_flag = false;
  std::string image_topic ="camera/image_raw";
+ std::string service_call ="camera/spinnaker_camera_nodelet/set_parameters";
+ std::string exp_param_call = "camera/spinnaker_camera_nodelet/exposure_time";
+ std::string gain_param_call = "camera/spinnaker_camera_nodelet/gain";
 
 
 
-// Whether or not turn on the dehaze mode (Dehazing method: Kaiming He, 2011)
-
-bool dehaze_mode = true;
-
-int filter_size = 5; // Filter size of the filters used in the dehazing algorithm
-double blending_wt = 0.8;
 
 
 // Parameters that correlated to Shim's Gradient Metric

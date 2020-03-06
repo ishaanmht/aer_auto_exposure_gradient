@@ -1,6 +1,5 @@
 #include "aer_auto_exposure_gradient/auto_exp.h"
 
-#include "aer_auto_exposure_gradient/Dehaze.h"
 
 
 namespace exp_node 
@@ -20,13 +19,15 @@ namespace exp_node
 
     	std::cout <<"the  image topic given in launch file? :"<< nh.getParam("/image_topic", image_topic)<<"\n";
         std::cout <<"the value of image topic is : "<< image_topic<<"\n";
+        std::cout <<"the  image topic given in launch file? :"<< nh.getParam("/service_call", service_call)<<"\n";
+        std::cout <<"the value of service call val is : "<< service_call<<"\n";
+        std::cout <<"the  image topic given in launch file? :"<< nh.getParam("/exp_param_call", exp_param_call)<<"\n";
+        std::cout <<"the value of exp param is : "<< exp_param_call<<"\n";
+        std::cout <<"the  image topic given in launch file? :"<< nh.getParam("/gain_param_call", gain_param_call)<<"\n";
+        std::cout <<"the value of gain param is : "<< gain_param_call<<"\n";
         std::cout <<"the  kp given in launch file? :"<< nh.getParam("/kp", kp)<<"\n";
         std::cout <<"the value of kp is : "<< kp<<"\n";
-        std::cout <<"the dehaze mode selected? :"<< nh.getParam("/dehaze_mode", dehaze_mode)<<"\n";
-        std::cout <<"the dehaze mode is : "<< dehaze_mode<<"\n";
-        std::cout <<"the blending_wt given in launch file? :"<< nh.getParam("/blending_wt", blending_wt)<<"\n";
-        std::cout <<"the value of blending_wt is : "<< blending_wt<<"\n";
-
+        
         cv::namedWindow("view", CV_WINDOW_NORMAL); // comment in implement
 
     	generate_LUT();
@@ -54,21 +55,6 @@ namespace exp_node
 				// image_capture = cv_bridge::toCvCopy(msg, "mono8")->image;
 				image_capture = cv_bridge::toCvCopy(msg, "rgb8")->image;
 
-				cv::Mat ToTransmission = cv::Mat::ones(size, CV_64FC1) ;
-
-				if (dehaze_mode)
-				{
-					
-					cv::Mat Img_pre;
-					cv::resize(image_capture, Img_pre, size);
-					bool haha;
-					ImageDehazer Deh;
-					haha = Deh.Dehaze(Img_pre,filter_size,0.1,0.95, ToTransmission);
-					std::cout << "# of rows: " << ToTransmission.rows << "# of cols: " << ToTransmission.cols << std::endl;
-					cv::imshow("view", ToTransmission); //comment this line in actual implementation
-					cv::waitKey(1); //comment this line in actual implementation
-
-				}
 			
 				
 
@@ -80,15 +66,7 @@ namespace exp_node
 				// Call the image processing funciton here (i.e. the gamma processing), returning a float point gamma value
 				///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-				//double gamma[7]={1.0/1.9, 1.0/1.5, 1.0/1.2 ,1.0, 1.2, 1.5, 1.9};
-				//double metric[7];
-			    //double max_metric;
-			    //double max_gamma,alpha, expNew, expCur, shutter_cur, shutter_new, gain_cur, gain_new,upper_shutter;
-				//double lower_shutter = 100.0; // adjust if necessary [unit: micro-second]
-        	    //double kp=0.4; // contorl the speed to convergence
-				//double d = 0.1, R; // parameters used in the nonliear function in Shim's 2018 paper 				
-				//int gamma_index; // index to record the location of the optimum gamma value
-				//bool gain_flag = false;
+
 
 				// calculate the upper limit of shutter speed [unit:microsecond]
 				if ((1.0/frame_rate_req)*1000000.0 > 32754.0){        
@@ -103,7 +81,7 @@ namespace exp_node
 				// manually adjust the possible gamma values and the number of gamma to use
 				for (int i=0; i<7; ++i)
 				{
-				   metric[i]= image_gradient_gamma(image_current, i, ToTransmission)/1000000; // passing the corresponding index
+				   metric[i]= image_gradient_gamma(image_current, i)/1000000; // passing the corresponding index
 				//std::cout << "\nmetric " << i << " is:" <<metric[i] <<std::endl;
 				   std::cout << "  " <<metric[i] <<std::endl; // comment
 				}
@@ -158,17 +136,7 @@ namespace exp_node
 				}
 				
 
-				/* // The following block is used if the function findRoots1 is in double* type
-				double * roots_adr;
-				roots_adr = findRoots1 (coeff);
 
-				double roots[4];
-				for ( int i = 0; i < 4; i++ ) {
-      					
-					roots[i] = *(roots_adr+i);
-					std::cout << "\nroot " << i << " is:" << roots[i] << std::endl; // comment
-   				}
-				*/ // end of commented block: call function: double * findRoots1
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 				
@@ -184,8 +152,8 @@ namespace exp_node
 				//ros::param::get("/blackfly/spinnaker_camera_nodelet/exposure_time", shutter_cur); // get the current shutter
 				//ros::param::get("/blackfly/spinnaker_camera_nodelet/gain", gain_cur); // get the current gain
 
-				ros::param::get("/camera/spinnaker_camera_nodelet/exposure_time", shutter_cur); // get the current shutter
-				ros::param::get("/camera/spinnaker_camera_nodelet/gain", gain_cur); // get the current gain
+				ros::param::get(exp_param_call, shutter_cur); // get the current shutter
+				ros::param::get(gain_param_call, gain_cur); // get the current gain
 			
 				
 				shutter_cur = shutter_cur / 1000000; // unit from micro-second to second
@@ -257,43 +225,18 @@ namespace exp_node
 		}
 		else // keeping the if-else statement here is because this makes easier to add delay
 		{
-			//ros::Timer timer1 = nh.createTimer(ros::Duration(0.5), imageProcess::timerCallback1);
-			//ros::Duration(0.15).sleep(); // IMPORTANT: Use this line to add delay if necessary
+			
 			check_rate = true;
 		}
 
 	}
 
-	double ExpNode::image_gradient_gamma(cv::Mat &src_img, int j, cv::Mat &ToTransmission)
+	double ExpNode::image_gradient_gamma(cv::Mat &src_img, int j)
 	{
 
 	// Accepting the raw image and the index of gamma value as input argument
 
-	/*  // start of block comment
 
-    		// The first lookuptable for gamma correction
-    		cv::Mat lookUpTable(1, 256, CV_8U);
-    		uchar* p = lookUpTable.ptr();
-    
-    		// The second lookuptable metric provided by Shim's 2014 paper
-    		cv::Mat lookUpTable_metric(1,256,CV_8U);
-    		uchar* q = lookUpTable_metric.ptr();
-    		double sigma = 255.0 * 0.06; // The sigma value is used in Shim's 2014 paper as a activation threshhold, the paper used a value of 0.06    
-    		double lamda = 1000.0; // The lamda value used in Shim's 2014 paper as a control parameter to adjust the mapping tendency (larger->steeper) 
-
-    		for( int i = 0; i < 256; ++i)
-    		{  p[i] = cv::saturate_cast<uchar>(pow(i / 255.0, gamma) * 255.0);
-       
-       		// The following if statement to create a lookup table based on the activation threshold value in Shim's 2014 paper
-			if (i >= sigma){
-				q[i] = 255 * ( ( log10( lamda * ((i-sigma)/255.0) + 1) ) / ( log10( lamda * ((255.0-sigma)/255.0) + 1) ) );
-	    		}
-			else{
-				q[i] = 0;
-			}
-     
-		} // end of for loop
-	*/   // end of block comment
 
 
 	    cv::Mat res = src_img.clone();
@@ -355,9 +298,9 @@ namespace exp_node
 	    cv::LUT(dst_img, lookUpTable_metric, res);
 	    res.convertTo(res, CV_64FC1);
 
-	    cv::addWeighted(weight_ori, blending_wt, ToTransmission, (1.0-blending_wt), 0.0, ToTransmission);
+	    
 
-	    res = res.mul(ToTransmission);
+	    
 	    double metric= cv::sum(res)[0];
 
 
@@ -425,7 +368,7 @@ namespace exp_node
         srv_req.config = conf;
 
         //ros::service::call("/blackfly/spinnaker_camera_nodelet/set_parameters",srv_req, srv_resp);
-	ros::service::call("/camera/spinnaker_camera_nodelet/set_parameters",srv_req, srv_resp);
+	ros::service::call(service_call,srv_req, srv_resp);
     }
 	
 

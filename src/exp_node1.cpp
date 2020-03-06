@@ -1,5 +1,5 @@
 #include "aer_auto_exposure_gradient/auto_exp.h"
-#include "aer_auto_exposure_gradient/Dehaze.h"
+
 
 int main(int argc, char **argv) {
   ros::init(argc, argv, "exp_node");
