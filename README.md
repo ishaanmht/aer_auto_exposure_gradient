@@ -16,4 +16,6 @@ In order to use the package follow these instructions:
 
 ## Video
 
-Coming Soon.
+[![](http://img.youtube.com/vi/vGS4-n6Pf30/0.jpg)](http://www.youtube.com/watch?v=vGS4-n6Pf30 "Video")
+
+
